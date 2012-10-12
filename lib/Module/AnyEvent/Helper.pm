@@ -8,7 +8,7 @@ use Carp;
 # VERSION
 require Exporter;
 our (@ISA) = qw(Exporter);
-our (@EXPORT_OK) = qw(strip_async strip_async_all);
+our (@EXPORT_OK) = qw(strip_async strip_async_all bind_scalar bind_array);
 
 sub _strip_async
 {
@@ -36,6 +36,30 @@ sub strip_async_all
 	my $pkg = caller;
 	no strict 'refs'; ## no critic (ProhibitNoStrict)
 	_strip_async($pkg, grep { /_async$/ && defined *{$pkg.'::'.$_}{CODE} } keys %{$pkg.'::'});
+}
+
+my $guard = {};
+
+sub bind_scalar
+{
+	my ($gcv, $lcv, $succ) = @_;
+
+	$lcv->cb(sub {
+		my $ret = $succ->(shift);
+		$gcv->send($ret) if $ret != $guard;
+	});
+	$guard;
+}
+
+sub bind_array
+{
+	my ($gcv, $lcv, $succ) = @_;
+
+	$lcv->cb(sub {
+		my @ret = $succ->(shift);
+		$gcv->send(@ret) if @ret != 1 || $ret[0] != $guard;
+	});
+	$guard;
 }
 
 1;
