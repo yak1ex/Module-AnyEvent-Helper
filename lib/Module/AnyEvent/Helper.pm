@@ -3,6 +3,8 @@ package Module::AnyEvent::Helper;
 use strict;
 use warnings;
 
+use Carp;
+
 # VERSION
 require Exporter;
 our (@ISA) = qw(Exporter);
@@ -13,7 +15,7 @@ sub strip_async
 	my (@func) = @_;
 	my $pkg = caller;
 	foreach my $func (@func) {
-		die unless $func =~ /_async$/;
+		croak "$func does not end with _async" unless $func =~ /_async$/;
 		my $new_func = $func;
 		$new_func =~ s/_async$//;
 
