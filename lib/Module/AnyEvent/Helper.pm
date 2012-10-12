@@ -18,7 +18,7 @@ sub _strip_async
 		my $new_func = $func;
 		$new_func =~ s/_async$//;
 
-		no strict 'refs';
+		no strict 'refs'; ## no critic (ProhibitNoStrict)
 		*{$pkg.'::'.$new_func} = sub {
 			shift->$func(@_)->recv;
 		};
@@ -34,7 +34,7 @@ sub strip_async
 sub strip_async_all
 {
 	my $pkg = caller;
-	no strict 'refs';
+	no strict 'refs'; ## no critic (ProhibitNoStrict)
 	_strip_async($pkg, grep { /_async$/ && defined *{$pkg.'::'.$_}{CODE} } keys %{$pkg.'::'});
 }
 
