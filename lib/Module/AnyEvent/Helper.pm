@@ -10,10 +10,9 @@ require Exporter;
 our (@ISA) = qw(Exporter);
 our (@EXPORT_OK) = qw(strip_async strip_async_all);
 
-sub strip_async
+sub _strip_async
 {
-	my (@func) = @_;
-	my $pkg = caller;
+	my ($pkg, @func) = @_;
 	foreach my $func (@func) {
 		croak "$func does not end with _async" unless $func =~ /_async$/;
 		my $new_func = $func;
@@ -26,11 +25,17 @@ sub strip_async
 	}
 }
 
+sub strip_async
+{
+	my $pkg = caller;
+	_strip_async($pkg, @_);
+}
+
 sub strip_async_all
 {
 	my $pkg = caller;
 	no strict 'refs';
-	strip_async(grep { defined *{$pkg.'::'.$_}{CODE} } keys %{$pkg.'::'});
+	_strip_async($pkg, grep { /_async$/ && defined *{$pkg.'::'.$_}{CODE} } keys %{$pkg.'::'});
 }
 
 1;
