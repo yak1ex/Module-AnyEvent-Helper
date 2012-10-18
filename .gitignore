@@ -1,0 +1,4 @@
+Module-AnyEvent-Helper-v*.tar.gz
+Module-AnyEvent-Helper-v*/
+.build/
+*.BAK
