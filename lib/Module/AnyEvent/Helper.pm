@@ -159,4 +159,9 @@ Similar as bind_scalar, but return value of successor is forced in array-context
 
 Yasutaka ATARASHI C<yakex@cpan.org>
 
+=head1 LICENSE
+
+This is free software; you can redistribute it and/or modify it under
+the same terms as the Perl 5 programming language system itself.
+
 =cut
