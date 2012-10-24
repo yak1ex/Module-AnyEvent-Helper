@@ -1,4 +1,6 @@
 Revision history for {{$dist->name}}
 
 {{$NEXT}}
+
+v0.0.1    2012-10-19 00:26:51 Asia/Tokyo
     * Initial release.
