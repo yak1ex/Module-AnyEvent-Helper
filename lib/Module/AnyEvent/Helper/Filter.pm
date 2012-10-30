@@ -12,6 +12,10 @@ BEGIN {
 sub import
 {
 	my ($pkg, %arg) = @_;
+	$arg{-remove_func} ||= [];
+	$arg{-translate_func} ||= [];
+	$arg{-replace_func} ||= [];
+	$arg{-delete_func} ||= [];
 	filtered->import(
 		by => 'Filter::PPI::Transform',
 		with => <<EOF,
