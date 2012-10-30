@@ -1,3 +1,7 @@
+# NAME
+
+Module::AnyEvent::Helper - Helper module to make other modules AnyEvent-friendly
+
 # SYNOPSIS
 
 By using this module, ordinary (synchronous) method:
@@ -59,29 +63,29 @@ All class methods can be exported but none is exported in default.
 
 - strip\_async(_method\_names_...)
 
-Make synchronous version for each specified method
-All method names MUST end with \_async.
-If 'func\_async' is passed, the following 'func' is made into the calling package.
+    Make synchronous version for each specified method
+    All method names MUST end with \_async.
+    If 'func\_async' is passed, the following 'func' is made into the calling package.
 
-    sub func { shift->func_async(@_)->recv; }
+        sub func { shift->func_async(@_)->recv; }
 
-Therefore, func\_async MUST be callable as method.
+    Therefore, func\_async MUST be callable as method.
 
 - strip\_async\_all()
 
-strip\_async is called for all methods end with \_async in the calling package.
-NOTE that error occurs if function, that is not a method, having \_async suffix exists.
+    strip\_async is called for all methods end with \_async in the calling package.
+    NOTE that error occurs if function, that is not a method, having \_async suffix exists.
 
 - bind\_scalar(_cv1_, _cv2_, _successor_)
 
-_cv1_ and _cv2_ MUST be AnyEvent condition variables. _successor_ MUST be code reference.
+    _cv1_ and _cv2_ MUST be AnyEvent condition variables. _successor_ MUST be code reference.
 
-You can consider _cv2_ is passed to _successor_, then return value of _successor_, forced in scalar-context, is sent by _cv1_.
-Actually, there is some treatment for nested call of bind\_scalar/bind\_array.
+    You can consider _cv2_ is passed to _successor_, then return value of _successor_, forced in scalar-context, is sent by _cv1_.
+    Actually, there is some treatment for nested call of bind\_scalar/bind\_array.
 
 - bind\_array(_cv1_, _cv2_, _successor_)
 
-Similar as bind\_scalar, but return value of successor is forced in array-context.
+    Similar as bind\_scalar, but return value of successor is forced in array-context.
 
 # AUTHOR
 
