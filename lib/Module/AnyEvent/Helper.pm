@@ -64,6 +64,8 @@ sub bind_array
 
 1;
 __END__
+=pod
+
 =head1 NAME
 
 Module::AnyEvent::Helper - Helper module to make other modules AnyEvent-friendly
