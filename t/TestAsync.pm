@@ -14,6 +14,7 @@ sub func2_async()
 	return $cv;
 }
 
-use Module::AnyEvent::Helper::Filter -as => TestAsync, -target => Test, -remove_func => [qw(func1 func2)], -translate_func => [qw(func3)];
+use Module::AnyEvent::Helper::Filter -as => TestAsync, -target => Test,
+	-remove_func => [qw(func1 func2)], -translate_func => [qw(func3)];
 
 1;
