@@ -14,7 +14,9 @@ sub new
     my %arg = @_;
     $self = bless {
     }, $class;
+    $self->{_PFUNC} = { map { $_, 1 } @{$arg{-replace_func}} } if exists $arg{-replace_func};
     $self->{_RFUNC} = { map { $_, 1 } @{$arg{-remove_func}} } if exists $arg{-remove_func};
+    $self->{_DFUNC} = { map { $_, 1 } @{$arg{-delete_func}} } if exists $arg{-delete_func};
     $self->{_TFUNC} = { map { $_, 1 } @{$arg{-translate_func}} } if exists $arg{-translate_func};
     return $self;
 }
@@ -163,6 +165,24 @@ sub _is_remove_func
     return exists $self->{_RFUNC}{$name};
 }
 
+sub _is_replace_func
+{
+    my ($self, $name) = @_;
+    return exists $self->{_PFUNC}{$name};
+}
+
+sub _is_delete_func
+{
+    my ($self, $name) = @_;
+    return exists $self->{_DFUNC}{$name};
+}
+
+sub _is_replace_target
+{
+    my ($self, $name) = @_;
+    return $self->_is_translate_func($name) || $self->_is_remove_func($name) || $self->_is_replace_func($name);
+}
+
 sub document
 {
     my ($self, $doc) = @_;
@@ -176,7 +196,7 @@ sub document
     for my $word (@$words) {
         next if !defined($word);
         if(_is_func_decl($word)) { # declaration
-            if($self->_is_remove_func($word->content)) {
+            if($self->_is_remove_func($word->content) || $self->_is_delete_func($word->content)) {
                 _delete_func_decl($word);
             } elsif($self->_is_translate_func($word->content)) {
                 push @decl, $word; # postpone declaration transform because other parts depend on this name
@@ -187,7 +207,7 @@ sub document
             next if ! defined _func_name($word);
             next if ! $self->_is_translate_func(_func_name($word));
             my $name = $word->content;
-            if($self->_is_remove_func($name) || $self->_is_translate_func($name)) {
+            if($self->_is_replace_target($name)) {
                 _replace_as_async($word, $name . '_async');
             }
         }
@@ -267,11 +287,24 @@ Create blocking wait methods from _async methods to emit C<Module::AnyEvent::Hel
 
 =item C<-remove_func>
 
-Specify array reference of removing methods. You need to implement these methods somewhere.
+Specify array reference of removing methods.
+If you want to implement async version of the methods, you specify them in this option.
 
 =item C<-translate_func>
 
-Specify array reference of translating methods. You don't need to implement these methods.
+Specify array reference of translating methods.
+You don't need to implement async version of these methods.
+This module translates implementation.
+
+=item C<-replace_func>
+
+Specify array reference of replacing methods.
+It is expected that async version is implemented elsewhere.
+
+=item C<-delete_func>
+
+Specify array reference of deleting methods.
+If you want to implement not async version of the methods, you specify them in this option.
 
 =back
 
