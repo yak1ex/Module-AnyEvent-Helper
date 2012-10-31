@@ -183,6 +183,16 @@ sub _is_replace_target
     return $self->_is_translate_func($name) || $self->_is_remove_func($name) || $self->_is_replace_func($name);
 }
 
+sub _is_calling
+{
+    my ($self, $word) = @_;
+    return 0 if ! $word->snext_sibling && ! $word->sprevious_sibling &&
+                $word->parent && $word->parent->isa('PPI::Statement::Expression') &&
+                $word->parent->parent && $word->parent->parent->isa('PPI::Structure::Subscript');
+    return 0 if $word->snext_sibling && $word->snext_sibling->isa('PPI::Token::Operator') && $word->snext_sibling->content eq '=>';
+    return 1;
+}
+
 sub document
 {
     my ($self, $doc) = @_;
@@ -203,9 +213,10 @@ sub document
                 _emit_cv_decl($word);
             }
         } else {
-            next if ! defined $word->document;
-            next if ! defined _func_name($word);
-            next if ! $self->_is_translate_func(_func_name($word));
+            next if ! defined $word->document; # Detached element
+            next if ! defined _func_name($word); # Not inside functions / methods
+            next if ! $self->_is_translate_func(_func_name($word)); # Not inside target functions / methods
+            next if ! $self->_is_calling($word); # Not calling
             my $name = $word->content;
             if($self->_is_replace_target($name)) {
                 _replace_as_async($word, $name . '_async');

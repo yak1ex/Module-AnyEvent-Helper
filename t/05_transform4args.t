@@ -18,6 +18,8 @@ sub func1
 	return 1;
 }
 
+my $ref = { func1 => 1, 1 + func1 => 2 };
+
 sub func2
 {
 	return 2;
@@ -26,7 +28,7 @@ sub func2
 sub func3
 {
 	my ($self, $arg) = @_;
-	return func1() if $arg == 1;
+	return func1() if $arg == $ref->{func1};
 	return func2() if $arg == 2;
 	return func4();
 }
@@ -43,13 +45,15 @@ use warnings;
 
 
 
+my $ref = { func1 => 1, 1 + func1 => 2 };
+
 
 
 sub func3_async
 {my $___cv___ = AE::cv;
 	my ($self, $arg) = @_;
 	Module::AnyEvent::Helper::bind_scalar($___cv___, func1_async(), sub {
-return shift->recv() if $arg == 1;
+return shift->recv() if $arg == $ref->{func1};
 	Module::AnyEvent::Helper::bind_scalar($___cv___, func2_async(), sub {
 return shift->recv() if $arg == 2;
 	Module::AnyEvent::Helper::bind_scalar($___cv___, func4_async(), sub {
