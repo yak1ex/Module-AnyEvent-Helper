@@ -85,7 +85,7 @@ sub _replace_as_shift_recv
     my $prev = $word->previous_sibling;
     my $next = $word->next_sibling;
 
-    if($next->isa('PPI::Structure::List')) {
+    if($next && $next->isa('PPI::Structure::List')) {
         my $next_ = $next->next_sibling;
         $args = $next->remove;
         $next = $next_;
