@@ -121,7 +121,7 @@ Using Coro is one solution, and to make a variant of method to return condition 
 To employ the latter solution, semi-mechanical works are required.
 This module reduces the work bit.
 
-=head1 FUNCTIONS 
+=head1 FUNCTIONS
 
 All functions can be exported but none is exported in default.
 

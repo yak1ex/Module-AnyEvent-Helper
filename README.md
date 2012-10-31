@@ -63,6 +63,8 @@ This module reduces the work bit.
 
 # FUNCTIONS
 
+All functions can be exported but none is exported in default.
+
 ## strip\_async(_method\_names_...)
 
 Make synchronous version for each specified method
@@ -88,10 +90,6 @@ Actually, there is some treatment for nested call of bind\_scalar/bind\_array.
 ## bind\_array(_cv1_, _cv2_, _successor_)
 
 Similar as bind\_scalar, but return value of successor is forced in array-context.
-
-# FUNCTIONS 
-
-All functions can be exported but none is exported in default.
 
 # AUTHOR
 

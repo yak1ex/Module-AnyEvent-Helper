@@ -128,7 +128,6 @@ It is expected that async version is implemented elsewhere.
 Specify array reference of deleting methods.
 If you want to implement not async version of the methods, you specify them in this option.
 
-
 =head1 SEE ALSO
 
 This module is a tiny wrapper for the following modules.
