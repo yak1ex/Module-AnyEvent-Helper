@@ -3,6 +3,7 @@ package Module::AnyEvent::Helper::Filter;
 use strict;
 use warnings;
 
+# ABSTRACT: source filter for AnyEvent-ize helper
 # VERSION
 
 BEGIN {
@@ -35,10 +36,6 @@ EOF
 1;
 __END__
 =pod
-
-=head1 NAME
-
-Module::AnyEvent::Helper::Filter - source filter for AnyEvent-ize helper
 
 =head1 SYNOPSIS
 
@@ -102,68 +99,43 @@ To combine with your implementation of impl_async(), package FooAsync can be use
   $obj->func(1,2); # Blocking manner possible
   $obj->func_async(1,2)->cb(sub {}); # Non-blocking manner also possible
 
-=head1 OPTIONS
-
-=over 4
-
-=item C<-target>
+=option C<-target>
 
 Specify filter target module.
 
-=item C<-as>
+=option C<-as>
 
 Specify name of filtered result module.
 
-=item C<-remove_func>
+=option C<-remove_func>
 
 Specify array reference of removing methods.
 If you want to implement async version of the methods, you specify them in this option.
 
-=item C<-translate_func>
+=option C<-translate_func>
 
 Specify array reference of translating methods.
 You don't need to implement async version of these methods.
 This module translates implementation.
 
-=item C<-replace_func>
+=option C<-replace_func>
 
 Specify array reference of replacing methods.
 It is expected that async version is implemented elsewhere.
 
-=item C<-delete_func>
+=option C<-delete_func>
 
 Specify array reference of deleting methods.
 If you want to implement not async version of the methods, you specify them in this option.
 
-=back
 
 =head1 SEE ALSO
 
 This module is a tiny wrapper for the following modules.
 
-=over 4
-
-=item *
-
-L<filtered> - Enable to apply source filter on external module
-
-=item *
-
-L<Filter::PPI::Transform> -  Tiny adapter from PPI::Transform to source filter
-
-=item *
-
-L<Module::AnyEvent::Helper::PPI::Transform> - Actual transformation is implemented here.
-
-=back
-
-=head1 AUTHOR
-
-Yasutaka ATARASHI <yakex@cpan.org>
-
-=head1 LICENSE
-
-This is free software; you can redistribute it and/or modify it under
-the same terms as the Perl 5 programming language system itself.
+=for :list
+* L<filtered> - Enable to apply source filter on external module
+* L<Filter::PPI::Transform> -  Tiny adapter from PPI::Transform to source filter
+* L<Module::AnyEvent::Helper::PPI::Transform> - Actual transformation is implemented here.
 
 =cut

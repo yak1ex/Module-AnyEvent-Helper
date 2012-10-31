@@ -5,7 +5,9 @@ use warnings;
 
 use Carp;
 
+# ABSTRACT: Helper module to make other modules AnyEvent-friendly
 # VERSION
+
 require Exporter;
 our (@ISA) = qw(Exporter);
 our (@EXPORT_OK) = qw(strip_async strip_async_all bind_scalar bind_array);
@@ -66,10 +68,6 @@ sub bind_array
 __END__
 =pod
 
-=head1 NAME
-
-Module::AnyEvent::Helper - Helper module to make other modules AnyEvent-friendly
-
 =head1 SYNOPSIS
 
 By using this module, ordinary (synchronous) method:
@@ -123,13 +121,11 @@ Using Coro is one solution, and to make a variant of method to return condition 
 To employ the latter solution, semi-mechanical works are required.
 This module reduces the work bit.
 
-=head1 CLASS METHODS
+=head1 FUNCTIONS 
 
-All class methods can be exported but none is exported in default.
+All functions can be exported but none is exported in default.
 
-=over 4
-
-=item strip_async(I<method_names>...)
+=func strip_async(I<method_names>...)
 
 Make synchronous version for each specified method
 All method names MUST end with _async.
@@ -139,31 +135,20 @@ If 'func_async' is passed, the following 'func' is made into the calling package
 
 Therefore, func_async MUST be callable as method.
 
-=item strip_async_all()
+=func strip_async_all()
 
 strip_async is called for all methods end with _async in the calling package.
 NOTE that error occurs if function, that is not a method, having _async suffix exists.
 
-=item bind_scalar(I<cv1>, I<cv2>, I<successor>)
+=func bind_scalar(I<cv1>, I<cv2>, I<successor>)
 
 I<cv1> and I<cv2> MUST be AnyEvent condition variables. I<successor> MUST be code reference.
 
 You can consider I<cv2> is passed to I<successor>, then return value of I<successor>, forced in scalar-context, is sent by I<cv1>.
 Actually, there is some treatment for nested call of bind_scalar/bind_array.
 
-=item bind_array(I<cv1>, I<cv2>, I<successor>)
+=func bind_array(I<cv1>, I<cv2>, I<successor>)
 
 Similar as bind_scalar, but return value of successor is forced in array-context.
-
-=back
-
-=head1 AUTHOR
-
-Yasutaka ATARASHI C<yakex@cpan.org>
-
-=head1 LICENSE
-
-This is free software; you can redistribute it and/or modify it under
-the same terms as the Perl 5 programming language system itself.
 
 =cut

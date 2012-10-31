@@ -3,6 +3,7 @@ package Module::AnyEvent::Helper::PPI::Transform;
 use strict;
 use warnings;
 
+# ABSTRACT: PPI::Transform subclass for AnyEvent-ize helper
 # VERSION
 
 use base qw(PPI::Transform);
@@ -234,10 +235,6 @@ sub document
 __END__
 =pod
 
-=head1 NAME
-
-Module::AnyEvent::Helper::PPI::Transform - PPI::Transform subclass for AnyEvent-ize helper
-
 =head1 SYNOPSIS
 
 Typically, this module is not used directly but used via L<Module::AnyEvent::Helper::Filter>.
@@ -256,80 +253,46 @@ NOTE that this module itself does not touch package name.
 To make some modules AnyEvent-frinedly, it might be necessary to write boiler-plate codes.
 This module applys the following transformations.
 
-=over 4
+=begin :list
 
-=item *
+* Emit C<use AnyEvent;use Module::AnyEvent::Helper;> at the beginning of the document.
+* Translate (ordinary) methods to _async methods.
 
-Emit C<use AnyEvent;use Module::AnyEvent::Helper;> at the beginning of the document.
+=for :list
+* Emit C<my $___cv___ = AE::cv;> at the beginning of the methods.
+* Emit C<return $___cv___;> at the end of the methods.
+* Replace method calls with pairs of C<Module::AnyEvent::Helper::bind_scalar> and C<shift-E<gt>recv>.
 
-=item *
+* Delete methods you need to implement by yourself.
+* Create blocking wait methods from _async methods to emit C<Module::AnyEvent::Helper::strip_async_all();1;> at the end of the packages.
 
-Translate (ordinary) methods to _async methods.
+=end :list
 
-=over 4
+This module inherits all of L<PPI::Transform> methods.
 
-=item *
-
-Emit C<my $___cv___ = AE::cv;> at the beginning of the methods.
-
-=item *
-
-Emit C<return $___cv___;> at the end of the methods.
-
-=item *
-
-Replace method calls with pairs of C<Module::AnyEvent::Helper::bind_scalar> and C<shift-E<gt>recv>.
-
-=back
-
-=item *
-
-Delete methods you need to implement by yourself.
-
-=item *
-
-Create blocking wait methods from _async methods to emit C<Module::AnyEvent::Helper::strip_async_all();1;> at the end of the packages.
-
-=back
-
-=head1 OPTIONS
-
-=over 4
-
-=item C<-remove_func>
+=option C<-remove_func>
 
 Specify array reference of removing methods.
 If you want to implement async version of the methods, you specify them in this option.
 
-=item C<-translate_func>
+=option C<-translate_func>
 
 Specify array reference of translating methods.
 You don't need to implement async version of these methods.
 This module translates implementation.
 
-=item C<-replace_func>
+=option C<-replace_func>
 
 Specify array reference of replacing methods.
 It is expected that async version is implemented elsewhere.
 
-=item C<-delete_func>
+=option C<-delete_func>
 
 Specify array reference of deleting methods.
 If you want to implement not async version of the methods, you specify them in this option.
 
-=back
-
 =head1 METHODS
 
 This module inherits all of L<PPI::Transform> methods.
-
-=head1 AUTHOR
-
-Yasutaka ATARASHI <yakex@cpan.org>
-
-=head1 LICENSE
-
-This is free software; you can redistribute it and/or modify it under
-the same terms as the Perl 5 programming language system itself.
 
 =cut
