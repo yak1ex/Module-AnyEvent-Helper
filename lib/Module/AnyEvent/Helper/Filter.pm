@@ -6,6 +6,8 @@ use warnings;
 # ABSTRACT: source filter for AnyEvent-ize helper
 # VERSION
 
+use Carp;
+
 BEGIN {
 	require filtered;
 }
@@ -13,19 +15,36 @@ BEGIN {
 sub import
 {
 	my ($pkg, %arg) = @_;
+	my ($with);
 	$arg{-remove_func} ||= [];
 	$arg{-translate_func} ||= [];
 	$arg{-replace_func} ||= [];
 	$arg{-delete_func} ||= [];
-	filtered->import(
-		by => 'Filter::PPI::Transform',
-		with => <<EOF,
+	if(exists $arg{-transformer}) {
+		my $transformer = 'Module::AnyEvent::Helper::PPI::Transform::' . $arg{-transformer};
+		eval "require $transformer";
+		croak "Can't load ${transformer}: $@" if $@;
+		$with = <<EOF;
+'PPI::Transform::Sequence',
+$transformer => [],
+Module::AnyEvent::Helper::PPI::Transform => [
+-remove_func => [qw(@{$arg{-remove_func}})],
+-translate_func => [qw(@{$arg{-translate_func}})],
+-replace_func => [qw(@{$arg{-replace_func}})],
+-delete_func => [qw(@{$arg{-delete_func}})]]
+EOF
+	} else {
+		$with = <<EOF;
 'Module::AnyEvent::Helper::PPI::Transform',
 -remove_func => [qw(@{$arg{-remove_func}})],
 -translate_func => [qw(@{$arg{-translate_func}})],
 -replace_func => [qw(@{$arg{-replace_func}})],
--delete_func => [qw(@{$arg{-delete_func}})],
+-delete_func => [qw(@{$arg{-delete_func}})]
 EOF
+	}
+	filtered->import(
+		by => 'Filter::PPI::Transform',
+		with => $with,
 		on => $arg{-target},
 		as => $arg{-as},
 		use_ppi => 1,
@@ -129,6 +148,12 @@ Specify array reference of deleting methods.
 The function definition is removed and calling the function is kept as it is.
 If you want to implement not-async version of the methods and do not want async version,
 you specify them in this option.
+
+=option C<-transformer>
+
+Specify name of additional transformr module.
+C<'Module::AnyEvent::Helper::PPI::Transform::'> is prepended to the name.
+It should be a aubclass of L<PPI::Transform>.
 
 =head1 SEE ALSO
 
