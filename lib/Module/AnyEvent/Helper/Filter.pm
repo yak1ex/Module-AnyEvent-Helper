@@ -79,7 +79,7 @@ For example, Foo.pm in SYNOPSIS is filtered, semantically, as the following:
   package FooAsync;
   sub new { # constrcutor # keep as it is
   }
-  # impl() is removed
+  # impl() is removed, and calling impl() is converted to calling impl_async()
   sub func_async { # func() is translated
       my $___cv___ = AE::cv;
       Module::AnyEvent::Helper::bind_scalar($___cv___, impl_async(@_), sub {
@@ -109,23 +109,26 @@ Specify name of filtered result module.
 =option C<-remove_func>
 
 Specify array reference of removing methods.
-If you want to implement async version of the methods, you specify them in this option.
+The function definition is removed and calling the function is converted to calling async version.
+If you want to implement async version of the methods and to convert to ordinary version, you specify them in this option.
 
 =option C<-translate_func>
 
 Specify array reference of translating methods.
-You don't need to implement async version of these methods.
-This module translates implementation.
+The function definition is converted to async version and calling the function is converted to calling async version.
 
 =option C<-replace_func>
 
 Specify array reference of replacing methods.
+The function definition is kept as it is and calling the function is converted to calling async version.
 It is expected that async version is implemented elsewhere.
 
 =option C<-delete_func>
 
 Specify array reference of deleting methods.
-If you want to implement not async version of the methods, you specify them in this option.
+The function definition is removed and calling the function is kept as it is.
+If you want to implement not-async version of the methods and do not want async version,
+you specify them in this option.
 
 =head1 SEE ALSO
 
