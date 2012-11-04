@@ -66,7 +66,6 @@ sub bind_array
 
 1;
 __END__
-=pod
 
 =head1 SYNOPSIS
 
@@ -150,5 +149,3 @@ Actually, there is some treatment for nested call of bind_scalar/bind_array.
 =func bind_array(I<cv1>, I<cv2>, I<successor>)
 
 Similar as bind_scalar, but return value of successor is forced in array-context.
-
-=cut

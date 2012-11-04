@@ -35,7 +35,6 @@ EOF
 
 1;
 __END__
-=pod
 
 =head1 SYNOPSIS
 
@@ -136,5 +135,3 @@ This module is a tiny wrapper for the following modules.
 * L<filtered> - Enable to apply source filter on external module
 * L<Filter::PPI::Transform> -  Tiny adapter from PPI::Transform to source filter
 * L<Module::AnyEvent::Helper::PPI::Transform> - Actual transformation is implemented here.
-
-=cut

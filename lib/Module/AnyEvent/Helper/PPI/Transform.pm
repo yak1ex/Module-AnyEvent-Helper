@@ -233,7 +233,6 @@ sub document
 
 1;
 __END__
-=pod
 
 =head1 SYNOPSIS
 
@@ -294,5 +293,3 @@ If you want to implement not async version of the methods, you specify them in t
 =head1 METHODS
 
 This module inherits all of L<PPI::Transform> methods.
-
-=cut
