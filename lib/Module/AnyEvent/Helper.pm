@@ -4,6 +4,7 @@ use strict;
 use warnings;
 
 use Carp;
+use Scalar::Util qw(refaddr);
 
 # ABSTRACT: Helper module to make other modules AnyEvent-friendly
 # VERSION
@@ -40,7 +41,7 @@ sub strip_async_all
 	_strip_async($pkg, grep { /_async$/ && defined *{$pkg.'::'.$_}{CODE} } keys %{$pkg.'::'});
 }
 
-my $guard = {};
+my $guard = sub {};
 
 sub bind_scalar
 {
@@ -48,7 +49,7 @@ sub bind_scalar
 
 	$lcv->cb(sub {
 		my $ret = $succ->(shift);
-		$gcv->send($ret) if $ret != $guard;
+		$gcv->send($ret) if ref($ret) ne 'CODE' || refaddr($ret) != refaddr($guard);
 	});
 	$guard;
 }
@@ -59,7 +60,7 @@ sub bind_array
 
 	$lcv->cb(sub {
 		my @ret = $succ->(shift);
-		$gcv->send(@ret) if @ret != 1 || $ret[0] != $guard;
+		$gcv->send(@ret) if @ret != 1 || ref($ret[0]) ne 'CODE' || refaddr($ret[0]) != refaddr($guard);
 	});
 	$guard;
 }
