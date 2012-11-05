@@ -4,7 +4,6 @@ use strict;
 use warnings;
 
 use Carp;
-use Scalar::Util qw(refaddr);
 
 # ABSTRACT: Helper module to make other modules AnyEvent-friendly
 # VERSION
@@ -49,7 +48,7 @@ sub bind_scalar
 
 	$lcv->cb(sub {
 		my $ret = $succ->(shift);
-		$gcv->send($ret) if ref($ret) ne 'CODE' || refaddr($ret) != refaddr($guard);
+		$gcv->send($ret) if ref($ret) ne 'CODE' || $ret != $guard;
 	});
 	$guard;
 }
@@ -60,7 +59,7 @@ sub bind_array
 
 	$lcv->cb(sub {
 		my @ret = $succ->(shift);
-		$gcv->send(@ret) if @ret != 1 || ref($ret[0]) ne 'CODE' || refaddr($ret[0]) != refaddr($guard);
+		$gcv->send(@ret) if @ret != 1 || ref($ret[0]) ne 'CODE' || $ret[0] != $guard;
 	});
 	$guard;
 }

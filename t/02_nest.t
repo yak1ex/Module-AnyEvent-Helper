@@ -13,7 +13,7 @@ sub new { return bless {}; }
 sub func1_async
 {
 	my $cv = AE::cv;
-	my $w; $w = AE::timer 2, 0, sub { undef $w; $cv->send(1); };
+	my $w; $w = AE::timer 2, 0, sub { undef $w; $cv->send('Test'); };
 	return $cv;
 }
 
@@ -43,5 +43,5 @@ strip_async_all;
 package main;
 
 my $obj = target->new;
-ok($obj->func3(1) == 1);
+is($obj->func3(1), 'Test');
 is_deeply([$obj->func3(2)], [1,2]);
