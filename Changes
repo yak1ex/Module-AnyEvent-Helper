@@ -1,6 +1,10 @@
 Revision history for {{$dist->name}}
 
 {{$NEXT}}
+    * Check other valid usages of bareword in strict mode.
+    * Add additional transformer support.
+    * Permit spaces between word and parameter list and add support of prior -> chains.
+    * Type check before reference equality comparison to avoid misuse of string.
 
 v0.0.2    2012-10-31 08:20:03 Asia/Tokyo
     * Add -replace_func and -delete_func options in filter.

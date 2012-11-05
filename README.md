@@ -4,7 +4,7 @@ Module::AnyEvent::Helper - Helper module to make other modules AnyEvent-friendly
 
 # VERSION
 
-version v0.0.2
+version v0.0.3
 
 # SYNOPSIS
 
