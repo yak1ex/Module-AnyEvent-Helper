@@ -26,7 +26,7 @@ sub func2
 sub func3
 {
 	my ($self, $arg) = @_;
-	return $self->func1() if $arg == 1;
+	$self->func1 (0) if $arg == 1;
 	return $self->func2() if $arg == 2;
 	return 0;
 }
@@ -51,8 +51,8 @@ sub new
 sub func3_async
 {my $___cv___ = AE::cv;
 	my ($self, $arg) = @_;
-	Module::AnyEvent::Helper::bind_scalar($___cv___, $self->func1_async(), sub {
-return shift->recv() if $arg == 1;
+	Module::AnyEvent::Helper::bind_scalar($___cv___, $self->func1_async(0), sub {
+ shift->recv() if $arg == 1;
 	Module::AnyEvent::Helper::bind_scalar($___cv___, $self->func2_async(), sub {
 return shift->recv() if $arg == 2;
 	return 0;

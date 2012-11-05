@@ -91,6 +91,7 @@ sub _find_one_call
 # TODO: Probably, this is wrong
     while(1) {
 #print STDERR "$state : $sprev\n";
+        last unless $sprev;
         if(($state eq 'INIT' || $state eq 'LIST' || $state eq 'TERM' || $state eq 'SUBTERM') && $sprev->isa('PPI::Token::Operator') && $sprev->content eq '->') {
             $state = 'OP';
         } elsif($state eq 'OP' && $sprev->isa('PPI::Structure::List')) {
@@ -112,16 +113,12 @@ sub _find_one_call
         } else {
             $state = 'ERROR'; last;
         }
-        if($sprev->previous_sibling) {
-            $prev = $sprev->previous_sibling;
-            $sprev = $sprev->sprevious_sibling;
-        } else {
-            last;
-        }
+        $prev = $sprev->previous_sibling;
+        $sprev = $sprev->sprevious_sibling;
     }
     confess "Unexpected token sequence" unless $state eq 'INIT' || $state eq 'TERM' || $state eq 'SUBTERM';
     if($state ne 'INIT') {
-        while($sprev != $sprev_orig) {
+        while($sprev ne $sprev_orig) {
             my $sprev_ = $sprev_orig->sprevious_sibling;
             unshift @$pre , $sprev_orig->remove;
             $sprev_orig = $sprev_;
