@@ -8,6 +8,8 @@ use warnings;
 
 use base qw(PPI::Transform);
 
+use Carp;
+
 sub new
 {
     my $self = shift;
@@ -78,13 +80,64 @@ sub _emit_cv_ret
 
 my $shift_recv = PPI::Document->new(\'shift->recv()')->first_element->remove;
 
+sub _find_one_call
+{
+    my ($word) = @_;
+    my ($pre) = [];
+    my $sprev_orig = $word->sprevious_sibling;
+    my ($prev, $sprev) = ($word->previous_sibling, $word->sprevious_sibling);
+    my $state = 'INIT';
+
+# TODO: Probably, this is wrong
+    while(1) {
+#print STDERR "$state : $sprev\n";
+        if(($state eq 'INIT' || $state eq 'LIST' || $state eq 'TERM' || $state eq 'SUBTERM') && $sprev->isa('PPI::Token::Operator') && $sprev->content eq '->') {
+            $state = 'OP';
+        } elsif($state eq 'OP' && $sprev->isa('PPI::Structure::List')) {
+            $state = 'LIST';
+        } elsif(($state eq 'OP' || $state eq 'LIST') && ($sprev->isa('PPI::Token::Word') || $sprev->isa('PPI::Token::Symbol'))) {
+            $state = 'TERM';
+        } elsif(($state eq 'OP' || $state eq 'SUBTERM') && 
+                ($sprev->isa('PPI::Structure::Constructor') || $sprev->isa('PPI::Structure::List') || $sprev->isa('PPI::Structure::Subscript'))) {
+            $state = 'SUBTERM';
+        } elsif(($state eq 'OP' || $state eq 'SUBTERM') && 
+                ($sprev->isa('PPI::Token::Word') || $sprev->isa('PPI::Token::Symbol'))) {
+            $state = 'TERM';
+        } elsif(($state eq 'OP' || $state eq 'TERM') && $sprev->isa('PPI::Structure::Block')) {
+            $state = 'BLOCK';
+        } elsif($state eq 'BLOCK' && $sprev->isa('PPI::Token::Cast')) {
+            $state = 'TERM';
+        } elsif($state eq 'INIT' || $state eq 'TERM' || $state eq 'SUBTERM') {
+            last; 
+        } else {
+            $state = 'ERROR'; last;
+        }
+        if($sprev->previous_sibling) {
+            $prev = $sprev->previous_sibling;
+            $sprev = $sprev->sprevious_sibling;
+        } else {
+            last;
+        }
+    }
+    confess "Unexpected token sequence" unless $state eq 'INIT' || $state eq 'TERM' || $state eq 'SUBTERM';
+    if($state ne 'INIT') {
+        while($sprev != $sprev_orig) {
+            my $sprev_ = $sprev_orig->sprevious_sibling;
+            unshift @$pre , $sprev_orig->remove;
+            $sprev_orig = $sprev_;
+        }
+    }
+    return [$prev, $pre];
+}
+
 sub _replace_as_shift_recv
 {
     my ($word) = @_;
 
     my $args;
-    my $prev = $word->previous_sibling;
-    my $next = $word->next_sibling;
+    my $next = $word->snext_sibling;
+
+    my ($prev, $pre) = @{_find_one_call($word)};
 
     if($next && $next->isa('PPI::Structure::List')) {
         my $next_ = $next->next_sibling;
@@ -93,7 +146,7 @@ sub _replace_as_shift_recv
     }
     $word->delete;
     _copy_children($prev, $next, $shift_recv);
-    return $args;
+    return [$pre, $args];
 }
 
 my $bind = PPI::Document->new(\('Module::AnyEvent::Helper::bind_scalar($___cv___, MARK(), sub {'."\n});"))->first_element->remove;
@@ -106,7 +159,7 @@ sub _replace_as_async
     my $prev = $word->previous_sibling;
     my $next = $word->next_sibling;
 
-    my $args = _replace_as_shift_recv($word); # word is removed
+    my ($pre, $args) = @{_replace_as_shift_recv($word)}; # word and prefixes are removed
 
     # Setup binder
     my $bind_ = $bind->clone;
@@ -116,6 +169,11 @@ sub _replace_as_async
         $mark->insert_after($args);
     }
     $mark->set_content($name);
+    while(@$pre) {
+        my $entry = pop @$pre;
+        $mark->insert_before($entry);
+        $mark = $entry;
+    }
 
     # Insert
     $st->insert_before($bind_);
