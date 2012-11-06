@@ -1,6 +1,8 @@
 Revision history for {{$dist->name}}
 
 {{$NEXT}}
+
+v0.0.3    2012-11-06 00:14:23 Asia/Tokyo
     * Check other valid usages of bareword in strict mode.
     * Add additional transformer support.
     * Permit spaces between word and parameter list and add support of prior -> chains.
