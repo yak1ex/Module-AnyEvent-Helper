@@ -20,7 +20,11 @@ sub new
     $self->{_PFUNC} = { map { $_, 1 } @{$arg{-replace_func}} } if exists $arg{-replace_func};
     $self->{_RFUNC} = { map { $_, 1 } @{$arg{-remove_func}} } if exists $arg{-remove_func};
     $self->{_DFUNC} = { map { $_, 1 } @{$arg{-delete_func}} } if exists $arg{-delete_func};
-    $self->{_TFUNC} = { map { $_, 1 } @{$arg{-translate_func}} } if exists $arg{-translate_func};
+    $self->{_TFUNC} = { map { my $func = $_; $func =~ s/^@//; $func, 1 } @{$arg{-translate_func}} } if exists $arg{-translate_func};
+    $self->{_AFUNC} = {
+        map { my $func = $_; $func =~ s/^@//; $func, 1 }
+        exists $arg{-translate_func} ? grep { /^@/ } @{$arg{-translate_func}} : (),
+    };
     return $self;
 }
 
@@ -146,11 +150,12 @@ sub _replace_as_shift_recv
     return [$pre, $args];
 }
 
-my $bind = PPI::Document->new(\('Module::AnyEvent::Helper::bind_scalar($___cv___, MARK(), sub {'."\n});"))->first_element->remove;
+my $bind_scalar = PPI::Document->new(\('Module::AnyEvent::Helper::bind_scalar($___cv___, MARK(), sub {'."\n});"))->first_element->remove;
+my $bind_array = PPI::Document->new(\('Module::AnyEvent::Helper::bind_array($___cv___, MARK(), sub {'."\n});"))->first_element->remove;
 
 sub _replace_as_async
 {
-    my ($word, $name) = @_;
+    my ($word, $name, $is_array) = @_;
 
     my $st = $word->statement;
     my $prev = $word->previous_sibling;
@@ -159,7 +164,7 @@ sub _replace_as_async
     my ($pre, $args) = @{_replace_as_shift_recv($word)}; # word and prefixes are removed
 
     # Setup binder
-    my $bind_ = $bind->clone;
+    my $bind_ = $is_array ? $bind_array->clone : $bind_scalar->clone;
     my $mark = $bind_->find_first(sub { $_[1]->class eq 'PPI::Token::Word' && $_[1]->content eq 'MARK'});
     if(defined $args) {
         $mark->next_sibling->delete;
@@ -239,6 +244,12 @@ sub _is_replace_target
     return $self->_is_translate_func($name) || $self->_is_remove_func($name) || $self->_is_replace_func($name);
 }
 
+sub _is_array_func
+{
+    my ($self, $name) = @_;
+    return exists $self->{_AFUNC}{$name};
+}
+
 sub _is_calling
 {
     my ($self, $word) = @_;
@@ -275,7 +286,7 @@ sub document
             next if ! $self->_is_calling($word); # Not calling
             my $name = $word->content;
             if($self->_is_replace_target($name)) {
-                _replace_as_async($word, $name . '_async');
+                _replace_as_async($word, $name . '_async', $self->_is_array_func(_func_name($word)));
             }
         }
     }
