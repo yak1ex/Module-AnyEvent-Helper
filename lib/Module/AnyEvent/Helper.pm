@@ -3,6 +3,7 @@ package Module::AnyEvent::Helper;
 use strict;
 use warnings;
 
+use Try::Tiny;
 use Carp;
 
 # ABSTRACT: Helper module to make other modules AnyEvent-friendly
@@ -47,8 +48,13 @@ sub bind_scalar
 	my ($gcv, $lcv, $succ) = @_;
 
 	$lcv->cb(sub {
-		my $ret = $succ->(shift);
-		$gcv->send($ret) if ref($ret) ne 'CODE' || $ret != $guard;
+		my $arg = shift;
+		try {
+			my $ret = $succ->($arg);
+			$gcv->send($ret) if ref($ret) ne 'CODE' || $ret != $guard;
+		} catch {
+			$gcv->croak($_);
+		}
 	});
 	$guard;
 }
@@ -58,8 +64,13 @@ sub bind_array
 	my ($gcv, $lcv, $succ) = @_;
 
 	$lcv->cb(sub {
-		my @ret = $succ->(shift);
-		$gcv->send(@ret) if @ret != 1 || ref($ret[0]) ne 'CODE' || $ret[0] != $guard;
+		my $arg = shift;
+		try {
+			my @ret = $succ->($arg);
+			$gcv->send(@ret) if @ret != 1 || ref($ret[0]) ne 'CODE' || $ret[0] != $guard;
+		} catch {
+			$gcv->croak($_);
+		}
 	});
 	$guard;
 }
