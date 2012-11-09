@@ -65,20 +65,13 @@ sub _copy_children
 }
 
 my $cv_decl = PPI::Document->new(\'my $___cv___ = AE::cv;')->first_element->remove;
+my $cv_ret = PPI::Document->new(\'return $___cv___;'); #->first_element->remove;
 
-sub _emit_cv_decl
+sub _emit_cv
 {
     my $word = shift;
     my $block = $word->parent->find_first('PPI::Structure::Block');
     _copy_children($block->first_element, undef, $cv_decl);
-}
-
-my $cv_ret = PPI::Document->new(\'return $___cv___;'); #->first_element->remove;
-
-sub _emit_cv_ret
-{
-    my $word = shift;
-    my $block = $word->parent->find_first('PPI::Structure::Block');
     _copy_children($block->schild($block->schildren-1), undef, $cv_ret);
 }
 
@@ -277,7 +270,6 @@ sub document
                 _delete_func_decl($word);
             } elsif($self->_is_translate_func($word->content)) {
                 push @decl, $word; # postpone declaration transform because other parts depend on this name
-                _emit_cv_decl($word);
             }
         } else {
             next if ! defined $word->document; # Detached element
@@ -292,7 +284,7 @@ sub document
     }
     foreach my $decl (@decl) {
         $decl->set_content($decl->content . '_async');
-        _emit_cv_ret($decl);
+        _emit_cv($decl);
     }
     return 1;
 }
