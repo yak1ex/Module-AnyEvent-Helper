@@ -6,52 +6,57 @@ use warnings;
 # ABSTRACT: PPI::Transform subclass for AnyEvent-ize helper
 # VERSION
 
-use base qw(PPI::Transform);
+use base qw(PPI::Transform Exporter);
+
+require Exporter;
+our (@EXPORT_OK) = qw(
+    function_name is_function_declaration delete_function_declaration
+    copy_children
+    emit_cv emit_cv_into_function
+    replace_as_async
+);
 
 use Carp;
+use Scalar::Util qw(blessed);
 
-sub new
-{
-    my $self = shift;
-    my $class = ref($self) || $self;
-    my %arg = @_;
-    $self = bless {
-    }, $class;
-    $self->{_PFUNC} = { map { $_, 1 } @{$arg{-replace_func}} } if exists $arg{-replace_func};
-    $self->{_RFUNC} = { map { $_, 1 } @{$arg{-remove_func}} } if exists $arg{-remove_func};
-    $self->{_DFUNC} = { map { $_, 1 } @{$arg{-delete_func}} } if exists $arg{-delete_func};
-    $self->{_TFUNC} = { map { my $func = $_; $func =~ s/^@//; $func, 1 } @{$arg{-translate_func}} } if exists $arg{-translate_func};
-    $self->{_AFUNC} = {
-        map { my $func = $_; $func =~ s/^@//; $func, 1 }
-        exists $arg{-translate_func} ? grep { /^@/ } @{$arg{-translate_func}} : (),
-    };
-    return $self;
-}
+########################################################################
+# Functions
+#     can be called as class methods
 
-sub _func_name
+sub function_name
 {
+    shift unless blessed($_[0]);
     my $word = shift;
+    croak "function_name: MUST be called with an argument of PPI::Element object" unless blessed($word) && $word->isa('PPI::Element');
     my $st = $word->statement;
     return if ! $st;
-    return _func_name($st->parent) if $st->class ne 'PPI::Statement::Sub';
+    return function_name($st->parent) if $st->class ne 'PPI::Statement::Sub';
     return $st->schild(1);
 }
 
-sub _is_func_decl
+sub is_function_declaration
 {
+    shift unless blessed($_[0]);
     my $word = shift;
+    croak "is_function_declaration: MUST be called with an argument of PPI::Token::Word object" unless blessed($word) && $word->isa('PPI::Token::Word');
     return defined $word->parent && $word->parent->class eq 'PPI::Statement::Sub';
 }
 
-sub _delete_func_decl
+sub delete_function_declaration
 {
+    shift unless blessed($_[0]);
     my $word = shift;
+    croak "delete_function_declaration: MUST be called with an argument of PPI::Token::Word object" unless blessed($word) && $word->isa('PPI::Token::Word');
     return $word->parent->delete;
 }
 
-sub _copy_children
+sub copy_children
 {
+    shift unless !defined($_[0]) || $_[0] eq '' || blessed($_[0]);
     my ($prev, $next, $target) = @_;
+
+    croak 'copy_children: Both of prev and next are not PPI::Element objects' unless blessed($prev) && $prev->isa('PPI::Element') || blessed($next) && $next->isa('PPI::Element');
+    croak 'copy_children: target is not a PPI::Element object' unless blessed($target) && $target->isa('PPI::Element');
 
     for my $elem ($target->children) {
         my $new_elem = $elem->clone or die;
@@ -67,19 +72,31 @@ sub _copy_children
 my $cv_decl = PPI::Document->new(\'my $___cv___ = AE::cv;')->first_element->remove;
 my $cv_ret = PPI::Document->new(\'return $___cv___;'); #->first_element->remove;
 
-sub _emit_cv
+sub emit_cv
 {
+    shift unless blessed($_[0]);
+    my $block = shift;
+    croak 'emit_cv: target is not a PPI::Structure::Block object' unless blessed($block) && $block->isa('PPI::Structure::Block');
+    copy_children($block->first_element, undef, $cv_decl);
+    copy_children($block->schild($block->schildren-1), undef, $cv_ret);
+}
+
+sub emit_cv_into_function
+{
+    shift unless blessed($_[0]);
     my $word = shift;
+    croak 'emit_cv_into_function: the first argument is not a PPI::Token::Word object' unless blessed($word) && $word->isa('PPI::Token::Word');
     my $block = $word->parent->find_first('PPI::Structure::Block');
-    _copy_children($block->first_element, undef, $cv_decl);
-    _copy_children($block->schild($block->schildren-1), undef, $cv_ret);
+    emit_cv($block);
 }
 
 my $shift_recv = PPI::Document->new(\'shift->recv()')->first_element->remove;
 
 sub _find_one_call
 {
+    shift unless blessed($_[0]);
     my ($word) = @_;
+    croak '_find_one_call: the first argument is not a PPI::Element object' unless blessed($word) && $word->isa('PPI::Element');
     my ($pre) = [];
     my $sprev_orig = $word->sprevious_sibling;
     my ($prev, $sprev) = ($word->previous_sibling, $word->sprevious_sibling);
@@ -126,7 +143,9 @@ sub _find_one_call
 
 sub _replace_as_shift_recv
 {
+    shift unless blessed($_[0]);
     my ($word) = @_;
+    croak '_replace_as_shift_recv: the first argument is not a PPI::Element object' unless blessed($word) && $word->isa('PPI::Element');
 
     my $args;
     my $next = $word->snext_sibling;
@@ -139,16 +158,18 @@ sub _replace_as_shift_recv
         $next = $next_;
     }
     $word->delete;
-    _copy_children($prev, $next, $shift_recv);
+    copy_children($prev, $next, $shift_recv);
     return [$pre, $args];
 }
 
 my $bind_scalar = PPI::Document->new(\('Module::AnyEvent::Helper::bind_scalar($___cv___, MARK(), sub {'."\n});"))->first_element->remove;
 my $bind_array = PPI::Document->new(\('Module::AnyEvent::Helper::bind_array($___cv___, MARK(), sub {'."\n});"))->first_element->remove;
 
-sub _replace_as_async
+sub replace_as_async
 {
+    shift unless blessed($_[0]);
     my ($word, $name, $is_array) = @_;
+    croak 'replace_as_async: the first argument is not a PPI::Element object' unless blessed($word) && $word->isa('PPI::Element');
 
     my $st = $word->statement;
     my $prev = $word->previous_sibling;
@@ -186,25 +207,50 @@ my $use = PPI::Document->new(\"use AnyEvent;use Module::AnyEvent::Helper;");
 
 sub _emit_use
 {
+    shift unless blessed($_[0]);
     my ($doc) = @_;
+    croak '_emit_use: the first argument is not a PPI::Element object' unless blessed($doc) && $doc->isa('PPI::Element');
     my $first = $doc->first_element;
     $first = $first->snext_sibling if ! $first->significant;
-    _copy_children(undef, $first, $use);
+    copy_children(undef, $first, $use);
 }
 
 my $strip = PPI::Document->new(\"Module::AnyEvent::Helper::strip_async_all();1;");
 
 sub _emit_strip
 {
+    shift unless blessed($_[0]);
     my ($doc) = @_;
+    croak '_emit_strip: the first argument is not a PPI::Element object' unless blessed($doc) && $doc->isa('PPI::Element');
     my $pkgs = $doc->find('PPI::Statement::Package');
     shift @{$pkgs};
     for my $pkg (@$pkgs) {
-        _copy_children(undef, $pkg, $strip);
+        copy_children(undef, $pkg, $strip);
     }
     my $last = $doc->last_element;
     $last = $last->sprevious_sibling if ! $last->significant;
-    _copy_children($last, undef, $strip);
+    copy_children($last, undef, $strip);
+}
+
+########################################################################
+# Methods
+
+sub new
+{
+    my $self = shift;
+    my $class = ref($self) || $self;
+    my %arg = @_;
+    $self = bless {
+    }, $class;
+    $self->{_PFUNC} = { map { $_, 1 } @{$arg{-replace_func}} } if exists $arg{-replace_func};
+    $self->{_RFUNC} = { map { $_, 1 } @{$arg{-remove_func}} } if exists $arg{-remove_func};
+    $self->{_DFUNC} = { map { $_, 1 } @{$arg{-delete_func}} } if exists $arg{-delete_func};
+    $self->{_TFUNC} = { map { my $func = $_; $func =~ s/^@//; $func, 1 } @{$arg{-translate_func}} } if exists $arg{-translate_func};
+    $self->{_AFUNC} = {
+        map { my $func = $_; $func =~ s/^@//; $func, 1 }
+        exists $arg{-translate_func} ? grep { /^@/ } @{$arg{-translate_func}} : (),
+    };
+    return $self;
 }
 
 sub _is_translate_func
@@ -265,26 +311,26 @@ sub document
     my $words = $doc->find('PPI::Token::Word');
     for my $word (@$words) {
         next if !defined($word);
-        if(_is_func_decl($word)) { # declaration
+        if(is_function_declaration($word)) { # declaration
             if($self->_is_remove_func($word->content) || $self->_is_delete_func($word->content)) {
-                _delete_func_decl($word);
+                delete_function_declaration($word);
             } elsif($self->_is_translate_func($word->content)) {
                 push @decl, $word; # postpone declaration transform because other parts depend on this name
             }
         } else {
             next if ! defined $word->document; # Detached element
-            next if ! defined _func_name($word); # Not inside functions / methods
-            next if ! $self->_is_translate_func(_func_name($word)); # Not inside target functions / methods
+            next if ! defined function_name($word); # Not inside functions / methods
+            next if ! $self->_is_translate_func(function_name($word)); # Not inside target functions / methods
             next if ! $self->_is_calling($word); # Not calling
             my $name = $word->content;
             if($self->_is_replace_target($name)) {
-                _replace_as_async($word, $name . '_async', $self->_is_array_func(_func_name($word)));
+                replace_as_async($word, $name . '_async', $self->_is_array_func(function_name($word)));
             }
         }
     }
     foreach my $decl (@decl) {
         $decl->set_content($decl->content . '_async');
-        _emit_cv($decl);
+        emit_cv_into_function($decl);
     }
     return 1;
 }
@@ -347,6 +393,26 @@ It is expected that async version is implemented elsewhere.
 
 Specify array reference of deleting methods.
 If you want to implement not async version of the methods, you specify them in this option.
+
+=head1 FUNCTIONS
+
+All functions described here are exportable and can be called as class methods.
+
+  # The followings are identical
+  Module::AnyEvent::Helper::PPI::Transform::function_name($word);
+  Module::AnyEvent::Helper::PPI::Transform->function_name($word);
+
+=func function_name
+
+=func is_function_declaration
+
+=func delete_function_declaration
+
+=func copy_children
+
+=func emit_cv emit_cv_into_function
+
+=func replace_as_async
 
 =head1 METHODS
 
