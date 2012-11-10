@@ -1,6 +1,14 @@
 Revision history for {{$dist->name}}
 
 {{$NEXT}}
+    [Module::AnyEvent::Helper]
+        * Add `-exclude' option on strip_async_all().
+        * Add exception transfer support.
+        * Enable to call fuctions as class methods.
+    [Module::AnyEvent::Helper::Filter]
+        * Enable to specify array-context function.
+    [Module::AnyEvent::Helper::PPI::Transform]
+        * Export some functions to help implementing additional transformer.
 
 v0.0.3    2012-11-06 00:14:23 Asia/Tokyo
     * Check other valid usages of bareword in strict mode.
