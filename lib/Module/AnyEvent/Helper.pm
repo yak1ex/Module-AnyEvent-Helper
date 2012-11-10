@@ -143,28 +143,32 @@ This module reduces the work bit.
 All functions can be exported but none is exported in default.
 They can be called as class methods, also.
 
-=func strip_async(I<method_names>...)
+=func C<strip_async(@names)>
 
-Make synchronous version for each specified method
-All method names MUST end with _async.
-If 'func_async' is passed, the following 'func' is made into the calling package.
+Make synchronous version for each specified method by C<@names>.
+All method names MUST end with C<_async>.
+If C<'func_async'> is passed, the following C<'func'> is made into the calling package.
 
   sub func { shift->func_async(@_)->recv; }
 
-Therefore, func_async MUST be callable as method.
+Therefore, C<func_async> MUST be callable as method.
 
-=func strip_async_all()
+=func C<strip_async_all>
+
+=func C<strip_async_all(-exclude =E<gt> \@list)>
 
 strip_async is called for all methods end with _async in the calling package.
 NOTE that error occurs if function, that is not a method, having _async suffix exists.
 
-=func bind_scalar(I<cv1>, I<cv2>, I<successor>)
+You can specify excluding fuction name as C<@list>. Function names SHOULD NOT include _async suffix.
 
-I<cv1> and I<cv2> MUST be AnyEvent condition variables. I<successor> MUST be code reference.
+=func C<bind_scalar($cv1, $cv2, \&successor)>
 
-You can consider I<cv2> is passed to I<successor>, then return value of I<successor>, forced in scalar-context, is sent by I<cv1>.
-Actually, there is some treatment for nested call of bind_scalar/bind_array.
+C<$cv1> and C<$cv2> MUST be AnyEvent condition variables. C<\&successor> MUST be code reference.
 
-=func bind_array(I<cv1>, I<cv2>, I<successor>)
+You can consider C<$cv2> is passed to C<\&successor>, then return value of C<\&successor>, forced in scalar-context, is sent by C<$cv1>.
+Actually, there is some more treatment for nested call of bind_scalar/bind_array.
 
-Similar as bind_scalar, but return value of successor is forced in array-context.
+=func C<bind_array($cv1, $cv2, \&successor)>
+
+Similar as C<bind_scalar>, but return value of successor is forced in array-context.

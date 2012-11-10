@@ -111,39 +111,44 @@ To combine with your implementation of impl_async(), package FooAsync can be use
   $obj->func(1,2); # Blocking manner possible
   $obj->func_async(1,2)->cb(sub {}); # Non-blocking manner also possible
 
-=option C<-target>
+=option C<-target =E<gt> $name>
 
 Specify filter target module.
 
-=option C<-as>
+=option C<-as =E<gt> $name>
 
 Specify name of filtered result module.
 
-=option C<-remove_func>
+=option C<-remove_func =E<gt> \@func>
 
 Specify array reference of removing methods.
 The function definition is removed and calling the function is converted to calling async version.
 If you want to implement async version of the methods and to convert to ordinary version, you specify them in this option.
 
-=option C<-translate_func>
+=option C<-translate_func =E<gt> \@func>
 
 Specify array reference of translating methods.
 The function definition is converted to async version and calling the function is converted to calling async version.
 
-=option C<-replace_func>
+=option C<-replace_func =E<gt> \@func>
 
 Specify array reference of replacing methods.
 The function definition is kept as it is and calling the function is converted to calling async version.
 It is expected that async version is implemented elsewhere.
 
-=option C<-delete_func>
+=option C<-delete_func =E<gt> \@func>
 
 Specify array reference of deleting methods.
 The function definition is removed and calling the function is kept as it is.
 If you want to implement not-async version of the methods and do not want async version,
 you specify them in this option.
 
-=option C<-transformer>
+=option C<-exclude_func =E<gt> \@func>
+
+Specify array reference of method names excluded from conversion from async version.
+Suffix _async SHOULD NOT be included.
+
+=option C<-transformer =E<gt> $name>
 
 Specify name of additional transformr module.
 C<'Module::AnyEvent::Helper::PPI::Transform::'> is prepended to the name.

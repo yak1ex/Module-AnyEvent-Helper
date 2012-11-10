@@ -354,6 +354,14 @@ Of course, however, you can use this module directly.
 
 NOTE that this module itself does not touch package name.
 
+There are some helper functions can be exported.
+
+  use Module::AnyEvent::Helper::PPI::Transform qw(function_name);
+  function_name($element); # returns function name whose definition includes the element
+  
+  # or you can call them as class methods
+  Module::AnyEvent::Helper::PPI::Transform->function_name($element);
+
 =head1 DESCRIPTION
 
 To make some modules AnyEvent-frinedly, it might be necessary to write boiler-plate codes.
@@ -374,7 +382,9 @@ This module applys the following transformations.
 
 =end :list
 
-This module inherits all of L<PPI::Transform> methods.
+Additionally, this module inherits all of L<PPI::Transform> methods.
+
+Furthermore, there are some helper functions. It might be helpful for implementing additional transformer of L<Module::AnyEvent::Helper::Filter>.
 
 =option C<-remove_func>
 
@@ -399,23 +409,82 @@ If you want to implement not async version of the methods, you specify them in t
 
 =head1 FUNCTIONS
 
-All functions described here are exportable and can be called as class methods.
+All functions described here can be exported and can be called as class methods.
 
   # The followings are identical
   Module::AnyEvent::Helper::PPI::Transform::function_name($word);
   Module::AnyEvent::Helper::PPI::Transform->function_name($word);
 
-=func function_name
+=func C<function_name($element)>
 
-=func is_function_declaration
+C<$element> MUST be L<PPI::Element> object.
+If C<$element> is included in a function definition, its function name is returned.
+Otherwise, C<undef> is returned.
 
-=func delete_function_declaration
+=func C<is_function_declaration($word)>
 
-=func copy_children
+C<$word> MUST be L<PPI::Token::Word> object.
+If C<$word> points a function name of a function declaration, true is returned.
+Otherwise, false is returned.
 
-=func emit_cv emit_cv_into_function
+=func C<delete_function_declaration($word)>
 
-=func replace_as_async
+C<$word> MUST be L<PPI::Token::Word> object and SHOULD be is_function_declaration is true.
+Delete the function declaration from the document.
+
+=func C<copy_children($prev, $next, $target)>
+
+C<$prev> specifies the where elements are inserted after.
+C<$next> specifies the where elements are inserted before.
+One of the two MUST be valied L<PPI::Element> object.
+If both are valid, the first paramter is used and the second parameter is ignored.
+
+C<$target> specifies L<PPI::Element> holding elements inserted at the place specified by C<$prev> or C<$next>.
+
+=func C<emit_cv($block)>
+
+C<$block> is L<PPI::Structure::Block> object.
+
+  my $___cv___ = AE::cv;
+
+is inserted at the beginning of the block, and
+
+  return $___cv___;
+
+is inserted at the end of the block.
+
+=func C<emit_cv_into_function($word)>
+
+C<$word> is L<PPI::Token::Word> object and SHOULD be is_function_declaration is true.
+C<emit_cv> is called for the block of the function declaration.
+
+=func C<replace_as_async($element, $name, $is_array)>
+
+C<$element> is a L<PPI::Element> object and SHOULD point the name of the function call.
+C<$name> is the function name that will be set as the contents of C<$element>.
+C<$is_array> is a boolean flag spcifying whether returning context is list context or not.
+
+If the first argument points at C<call> in the following code:
+
+  my $var = 42 + $some->[$idx]{$key}->call($arg1, $arg2) * func();
+  # codes follows ...
+
+after the call of this function with C<replace_as_async($elem, 'call_async', 0)>, converted into as follows:
+
+  Module::AnyEvent::Helper::bind_scalar($___cv___, call_async($arg1, $arg2), sub {
+  my $var = 42 + shift->recv() * func();
+  # codes follows ...
+  });
+
+For the case of C<replace_as_async($elem, 'call_async', 1)>, converted into as follows:
+
+
+  Module::AnyEvent::Helper::bind_array($___cv___, call_async($arg1, $arg2), sub {
+  my $var = 42 + shift->recv() * func();
+  # codes follows ...
+  });
+
+See also L<Module::AnyEvent::Helper>.
 
 =head1 METHODS
 

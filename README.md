@@ -66,31 +66,35 @@ This module reduces the work bit.
 All functions can be exported but none is exported in default.
 They can be called as class methods, also.
 
-## strip\_async(_method\_names_...)
+## `strip\_async(@names)`
 
-Make synchronous version for each specified method
-All method names MUST end with \_async.
-If 'func\_async' is passed, the following 'func' is made into the calling package.
+Make synchronous version for each specified method by `@names`.
+All method names MUST end with `_async`.
+If `'func_async'` is passed, the following `'func'` is made into the calling package.
 
     sub func { shift->func_async(@_)->recv; }
 
-Therefore, func\_async MUST be callable as method.
+Therefore, `func_async` MUST be callable as method.
 
-## strip\_async\_all()
+## `strip\_async\_all`
+
+## `strip\_async\_all(-exclude => \\@list)`
 
 strip\_async is called for all methods end with \_async in the calling package.
 NOTE that error occurs if function, that is not a method, having \_async suffix exists.
 
-## bind\_scalar(_cv1_, _cv2_, _successor_)
+You can specify excluding fuction name as `@list`. Function names SHOULD NOT include \_async suffix.
 
-_cv1_ and _cv2_ MUST be AnyEvent condition variables. _successor_ MUST be code reference.
+## `bind\_scalar($cv1, $cv2, \\&successor)`
 
-You can consider _cv2_ is passed to _successor_, then return value of _successor_, forced in scalar-context, is sent by _cv1_.
-Actually, there is some treatment for nested call of bind\_scalar/bind\_array.
+`$cv1` and `$cv2` MUST be AnyEvent condition variables. `\&successor` MUST be code reference.
 
-## bind\_array(_cv1_, _cv2_, _successor_)
+You can consider `$cv2` is passed to `\&successor`, then return value of `\&successor`, forced in scalar-context, is sent by `$cv1`.
+Actually, there is some more treatment for nested call of bind\_scalar/bind\_array.
 
-Similar as bind\_scalar, but return value of successor is forced in array-context.
+## `bind\_array($cv1, $cv2, \\&successor)`
+
+Similar as `bind_scalar`, but return value of successor is forced in array-context.
 
 # AUTHOR
 
