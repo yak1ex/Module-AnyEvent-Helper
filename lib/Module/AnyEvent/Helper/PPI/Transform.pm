@@ -215,13 +215,15 @@ sub _emit_use
     copy_children(undef, $first, $use);
 }
 
-my $strip = PPI::Document->new(\"Module::AnyEvent::Helper::strip_async_all();1;");
+my $strip_tmpl = 'Module::AnyEvent::Helper::strip_async_all(-exclude => [qw(%s)]);1;';
 
 sub _emit_strip
 {
     shift unless blessed($_[0]);
-    my ($doc) = @_;
+    my ($doc, @exclude) = @_;
     croak '_emit_strip: the first argument is not a PPI::Element object' unless blessed($doc) && $doc->isa('PPI::Element');
+    my $strip_ = sprintf($strip_tmpl, join ' ', @exclude);
+    my $strip = PPI::Document->new(\$strip_);
     my $pkgs = $doc->find('PPI::Statement::Package');
     shift @{$pkgs};
     for my $pkg (@$pkgs) {
@@ -250,6 +252,7 @@ sub new
         map { my $func = $_; $func =~ s/^@//; $func, 1 }
         exists $arg{-translate_func} ? grep { /^@/ } @{$arg{-translate_func}} : (),
     };
+    $self->{_XFUNC} = { map { $_, 1 } @{$arg{-exclude_func}} } if exists $arg{-exclude_func};
     return $self;
 }
 
@@ -305,7 +308,7 @@ sub document
     $doc->prune('PPI::Token::Comment');
 
     _emit_use($doc);
-    _emit_strip($doc);
+    _emit_strip($doc, exists $self->{_XFUNC} ? keys %{$self->{_XFUNC}} : ());
 
     my @decl;
     my $words = $doc->find('PPI::Token::Word');

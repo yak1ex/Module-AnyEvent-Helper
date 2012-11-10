@@ -39,8 +39,11 @@ sub strip_async_all
 {
 	shift if eval { $_[0]->isa(__PACKAGE__); };
 	my $pkg = caller;
+	my %arg = @_;
+	$arg{-exclude} ||= [];
+	my %exclude = map { $_.'_async', 1 } @{$arg{-exclude}};
 	no strict 'refs'; ## no critic (ProhibitNoStrict)
-	_strip_async($pkg, grep { /_async$/ && defined *{$pkg.'::'.$_}{CODE} } keys %{$pkg.'::'});
+	_strip_async($pkg, grep { /_async$/ && defined *{$pkg.'::'.$_}{CODE} && ! exists $exclude{$_}  } keys %{$pkg.'::'});
 }
 
 my $guard = sub {};

@@ -59,7 +59,7 @@ return shift->recv() if $arg == 2;
 	Module::AnyEvent::Helper::bind_scalar($___cv___, func4_async(), sub {
 return shift->recv();
 });});});return $___cv___;}
-1;Module::AnyEvent::Helper::strip_async_all();1;
+1;Module::AnyEvent::Helper::strip_async_all(-exclude => [qw()]);1;
 EOF
 
 my $trans = Module::AnyEvent::Helper::PPI::Transform->new(

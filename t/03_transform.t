@@ -57,7 +57,7 @@ return shift->recv() if $arg == 1;
 return shift->recv() if $arg == 2;
 	return 0;
 });});return $___cv___;}
-1;Module::AnyEvent::Helper::strip_async_all();1;
+1;Module::AnyEvent::Helper::strip_async_all(-exclude => [qw()]);1;
 EOF
 
 my $trans = Module::AnyEvent::Helper::PPI::Transform->new(
