@@ -1,6 +1,8 @@
 Revision history for {{$dist->name}}
 
 {{$NEXT}}
+
+v0.0.4    2012-11-10 14:02:04 Asia/Tokyo
     [Module::AnyEvent::Helper]
         * Add `-exclude' option on strip_async_all().
         * Add exception transfer support.
