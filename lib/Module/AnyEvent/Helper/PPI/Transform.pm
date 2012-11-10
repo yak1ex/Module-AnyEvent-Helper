@@ -59,11 +59,11 @@ sub copy_children
     croak 'copy_children: target is not a PPI::Element object' unless blessed($target) && $target->isa('PPI::Element');
 
     for my $elem ($target->children) {
-        my $new_elem = $elem->clone or die;
+        my $new_elem = $elem->clone or confess 'Cloning element failed';
         if($prev) {
-            $prev->insert_after($new_elem) or die;
+            $prev->insert_after($new_elem) or confess 'Insertion failed';
         } else {
-            $next->insert_before($new_elem) or die;
+            $next->insert_before($new_elem) or confess 'Insertion failed';
         }
         $prev = $new_elem;
     }
