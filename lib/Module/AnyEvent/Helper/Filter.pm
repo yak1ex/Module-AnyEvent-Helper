@@ -12,14 +12,14 @@ BEGIN {
 	require filtered;
 }
 
+my @keys = qw(-remove_func -translate_func -replace_func -delete_func -exclude_func);
+
 sub import
 {
 	my ($pkg, %arg) = @_;
 	my ($with);
-	$arg{-remove_func} ||= [];
-	$arg{-translate_func} ||= [];
-	$arg{-replace_func} ||= [];
-	$arg{-delete_func} ||= [];
+	$arg{$_} ||= [] for @keys;
+	my $trans_arg = join ",\n", map { $_." => [qw(@{$arg{$_}})]" } @keys;
 	if(exists $arg{-transformer}) {
 		my $transformer = 'Module::AnyEvent::Helper::PPI::Transform::' . $arg{-transformer};
 		eval "require $transformer";
@@ -28,18 +28,12 @@ sub import
 'PPI::Transform::Sequence',
 $transformer => [],
 Module::AnyEvent::Helper::PPI::Transform => [
--remove_func => [qw(@{$arg{-remove_func}})],
--translate_func => [qw(@{$arg{-translate_func}})],
--replace_func => [qw(@{$arg{-replace_func}})],
--delete_func => [qw(@{$arg{-delete_func}})]]
+${trans_arg}]
 EOF
 	} else {
 		$with = <<EOF;
 'Module::AnyEvent::Helper::PPI::Transform',
--remove_func => [qw(@{$arg{-remove_func}})],
--translate_func => [qw(@{$arg{-translate_func}})],
--replace_func => [qw(@{$arg{-replace_func}})],
--delete_func => [qw(@{$arg{-delete_func}})]
+${trans_arg}
 EOF
 	}
 	filtered->import(
