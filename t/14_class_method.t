@@ -14,14 +14,14 @@ sub new { return bless {}; }
 sub func1_async
 {
 	my $cv = AE::cv;
-	my $w; $w = AE::timer 2, 0, sub { undef $w; $cv->send('Test'); };
+	my $w; $w = AE::timer 0.1, 0, sub { undef $w; $cv->send('Test'); };
 	return $cv;
 }
 
 sub func2_async
 {
 	my $cv = AE::cv;
-	my $w; $w = AE::timer 2, 0, sub { undef $w; $cv->send(1,2); };
+	my $w; $w = AE::timer 0.1, 0, sub { undef $w; $cv->send(1,2); };
 	return $cv;
 }
 
