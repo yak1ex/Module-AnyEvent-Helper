@@ -30,12 +30,14 @@ sub _strip_async
 
 sub strip_async
 {
+	shift if eval { $_[0]->isa(__PACKAGE__); };
 	my $pkg = caller;
 	_strip_async($pkg, @_);
 }
 
 sub strip_async_all
 {
+	shift if eval { $_[0]->isa(__PACKAGE__); };
 	my $pkg = caller;
 	no strict 'refs'; ## no critic (ProhibitNoStrict)
 	_strip_async($pkg, grep { /_async$/ && defined *{$pkg.'::'.$_}{CODE} } keys %{$pkg.'::'});
@@ -45,6 +47,7 @@ my $guard = sub {};
 
 sub bind_scalar
 {
+	shift if eval { $_[0]->isa(__PACKAGE__); };
 	my ($gcv, $lcv, $succ) = @_;
 
 	$lcv->cb(sub {
@@ -61,6 +64,7 @@ sub bind_scalar
 
 sub bind_array
 {
+	shift if eval { $_[0]->isa(__PACKAGE__); };
 	my ($gcv, $lcv, $succ) = @_;
 
 	$lcv->cb(sub {
@@ -134,6 +138,7 @@ This module reduces the work bit.
 =head1 FUNCTIONS
 
 All functions can be exported but none is exported in default.
+They can be called as class methods, also.
 
 =func strip_async(I<method_names>...)
 

@@ -64,6 +64,7 @@ This module reduces the work bit.
 # FUNCTIONS
 
 All functions can be exported but none is exported in default.
+They can be called as class methods, also.
 
 ## strip\_async(_method\_names_...)
 
