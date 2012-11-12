@@ -1,6 +1,11 @@
 Revision history for {{$dist->name}}
 
 {{$NEXT}}
+    [Functional change]
+        * Add guard for the case the 2nd argument of bind_scalar/bind_array is not a condition variable.
+    [Non-functional changes]
+        * Avoid each ARRAY to loosen minimum perl requirement.
+        * Avoid use base Exporter to loosen minimum perl requirement.
 
 v0.0.4    2012-11-10 14:02:04 Asia/Tokyo
     [Module::AnyEvent::Helper]
