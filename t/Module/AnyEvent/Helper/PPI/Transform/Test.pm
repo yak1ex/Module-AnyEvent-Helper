@@ -10,7 +10,7 @@ sub document
 	my ($self, $doc) = @_;
 	my $count = 0;
 	my $numbers = $doc->find('PPI::Token::Number');
-	while(my (undef, $number) = each @$numbers) {
+	foreach my $number (@$numbers) {
 		my $content = $number->content;
 		if(ref($number->parent->parent) ne 'PPI::Document') {
 			$number->set_content($content + 1);
