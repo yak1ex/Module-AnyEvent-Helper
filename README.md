@@ -66,7 +66,7 @@ This module reduces the work bit.
 All functions can be exported but none is exported in default.
 They can be called as class methods, also.
 
-## `strip\_async(@names)`
+## `strip_async(@names)`
 
 Make synchronous version for each specified method by `@names`.
 All method names MUST end with `_async`.
@@ -76,23 +76,23 @@ If `'func_async'` is passed, the following `'func'` is made into the calling pac
 
 Therefore, `func_async` MUST be callable as method.
 
-## `strip\_async\_all`
+## `strip_async_all`
 
-## `strip\_async\_all(-exclude => \\@list)`
+## `strip_async_all(-exclude => \@list)`
 
 strip\_async is called for all methods end with \_async in the calling package.
 NOTE that error occurs if function, that is not a method, having \_async suffix exists.
 
 You can specify excluding fuction name as `@list`. Function names SHOULD NOT include \_async suffix.
 
-## `bind\_scalar($cv1, $cv2, \\&successor)`
+## `bind_scalar($cv1, $cv2, \&successor)`
 
 `$cv1` and `$cv2` MUST be AnyEvent condition variables. `\&successor` MUST be code reference.
 
 You can consider `$cv2` is passed to `\&successor`, then return value of `\&successor`, forced in scalar-context, is sent by `$cv1`.
 Actually, there is some more treatment for nested call of bind\_scalar/bind\_array.
 
-## `bind\_array($cv1, $cv2, \\&successor)`
+## `bind_array($cv1, $cv2, \&successor)`
 
 Similar as `bind_scalar`, but return value of successor is forced in array-context.
 
